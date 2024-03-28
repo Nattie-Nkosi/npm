@@ -1,3 +1,9 @@
+import { Link } from "react-router-dom";
+
 export default function Header() {
-  return <div>Header Component</div>;
+  return (
+    <div>
+      <Link to="/">NPM Registry</Link>
+    </div>
+  );
 }
