@@ -3,12 +3,12 @@ export interface PackageDetails {
   description: string;
   readme: string;
   author: {
-    email: string;
     name: string;
-  }
+    email: string;
+  };
   maintainers: {
-    email: string;
     name: string;
+    email: string;
   }[];
   license: string;
 }
