@@ -18,7 +18,7 @@ export default async function detailsLoader({ params }: LoaderArgs): Promise<Det
   }
 
   const details = await getPackage(name);
-  console.log(details)
+
   return {
     details
   }
