@@ -6,11 +6,13 @@ import DetailsPage from "./pages/details/DetailsPage";
 import { searchLoader } from "./pages/search/searchLoader";
 import detailsLoader from "./pages/details/detailsLoader";
 import { homeLoader } from "./pages/home/homeLoader";
+import ErrorPage from "./pages/ErrorPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Root />,
+    errorElement: <ErrorPage />,
     children: [
       {
         index: true,

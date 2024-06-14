@@ -1,30 +1,73 @@
-# React + TypeScript + Vite
+# NPM Registry Search Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a React-based application that allows users to search and view details of packages from the NPM registry. The application utilizes React Router for client-side routing and leverages loaders to fetch data for different routes.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Search NPM Packages**: Search for NPM packages using keywords.
+- **View Package Details**: View detailed information about a specific package, including description, license, and author.
+- **Featured Packages**: Display a list of featured packages on the home page.
+- **Error Handling**: Graceful handling of errors, including 404 not found errors.
 
-## Expanding the ESLint configuration
+## Technologies Used
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **React**: A JavaScript library for building user interfaces.
+- **React Router**: A collection of navigational components for React applications.
+- **Tailwind CSS**: A utility-first CSS framework for rapid UI development.
+- **Vite**: A fast development build tool.
 
-- Configure the top-level `parserOptions` property like this:
+## Installation
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/npm-registry-search.git
+   cd npm-registry-search
+   ```
+2. **Install dependencies**:
+3. ```bash
+   npm install
+   ```
+4. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+
+## Project Structure
+
+```planetext
+  src
+│   App.tsx
+│   index.tsx
+│   index.css
+│
+├───pages
+│   │   Root.tsx
+│   │   ErrorPage.tsx
+│   │
+│   ├───home
+│   │       HomePage.tsx
+│   │       homeLoader.ts
+│   │
+│   ├───search
+│   │       SearchPage.tsx
+│   │       searchLoader.ts
+│   │
+│   └───details
+│           DetailsPage.tsx
+│           detailsLoader.ts
+│
+├───components
+│       Header.tsx
+│       PackageListItem.tsx
+│       SearchInput.tsx
+│
+├───api
+│   ├───queries
+│   │       getFeaturedPackages.ts
+│   │       getPackage.ts
+│   │       searchPackages.ts
+│   │
+│   └───types
+│           packageDetails.ts
+│           packageSummary.ts
 ```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list

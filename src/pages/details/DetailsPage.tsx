@@ -1,8 +1,20 @@
 import { useLoaderData } from "react-router-dom";
 import { DetailsLoaderResult } from "./detailsLoader";
+import { useState, useEffect } from "react";
 
 export default function DetailsPage() {
   const { details } = useLoaderData() as DetailsLoaderResult;
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (details) {
+      setLoading(false);
+    }
+  }, [details]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-4">

@@ -3,16 +3,25 @@ import type { PackageDetails } from "../types/packageDetails";
 const FEATURED_PACKAGES = [
   'react',
   'typescript',
-  'esbuild',
+  'bootstrap',
   'vite',
 ];
 
 export async function getFeaturedPackages() {
-  const promises = FEATURED_PACKAGES.map(async (name) => {
-    const res = await fetch(`https://registry.npmjs.org/${name}`);
-    return res.json()
-  });
-  const data = await Promise.all(promises);
+  try {
 
-  return data as PackageDetails[];
+    const promises = FEATURED_PACKAGES.map(async (name) => {
+      const res = await fetch(`https://registry.npmjs.org/${name}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch package: ${name}`);
+      }
+      return res.json()
+    });
+    const data = await Promise.all(promises);
+
+    return data as PackageDetails[];
+  } catch (error) {
+    console.error('Error fetching featured packages:', error);
+    return [];
+  }
 }

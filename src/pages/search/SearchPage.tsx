@@ -1,9 +1,21 @@
 import { useLoaderData } from "react-router-dom";
 import PackageListItem from "../../components/PackageListItem";
 import { SearchLoaderResult } from "./searchLoader";
+import { useState, useEffect } from "react";
 
 export default function SearchPage() {
   const { searchResults } = useLoaderData() as SearchLoaderResult;
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (searchResults) {
+      setLoading(false);
+    }
+  }, [searchResults]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   const renderedResults = searchResults.map((result) => {
     return <PackageListItem pack={result} key={result.name} />;
