@@ -4,22 +4,26 @@ import { SearchLoaderResult } from "./searchLoader";
 import { useState, useEffect } from "react";
 
 export default function SearchPage() {
-  const { searchResults } = useLoaderData() as SearchLoaderResult;
+  const data = useLoaderData() as SearchLoaderResult;
+  const [searchResults, setSearchResults] = useState<SearchLoaderResult | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (searchResults) {
+    if (data) {
+      setSearchResults(data);
       setLoading(false);
     }
-  }, [searchResults]);
+  }, [data]);
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  const renderedResults = searchResults.map((result) => {
-    return <PackageListItem pack={result} key={result.name} />;
-  });
+  const renderedResults = searchResults?.searchResults.map((result) => (
+    <PackageListItem pack={result} key={result.name} />
+  ));
 
   return (
     <div>
