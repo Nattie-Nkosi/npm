@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { PackageSummary } from "../api/types/packageSummery";
+import type { PackageSummary } from "../api/types/packageSummary";
 
 interface PackageListItemProps {
   pack: PackageSummary;

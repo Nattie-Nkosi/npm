@@ -1,5 +1,7 @@
 # NPM Registry Search Application
 
+![](https://komarev.com/ghpvc/?username=Nattie-Nkosi&label=Nattie+Nkosi's+Profile+Views&color=ff69b4)
+
 This is a React-based application that allows users to search and view details of packages from the NPM registry. The application utilizes React Router for client-side routing and leverages loaders to fetch data for different routes.
 
 ## Features

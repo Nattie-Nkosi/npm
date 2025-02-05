@@ -1,5 +1,5 @@
 import { searchPackages } from "../../api/queries/searchPackages";
-import { PackageSummary } from "../../api/types/packageSummery";
+import { PackageSummary } from "../../api/types/packageSummary";
 
 export interface SearchLoaderResult {
   searchResults: PackageSummary[];
