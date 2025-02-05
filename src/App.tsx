@@ -7,6 +7,7 @@ import { searchLoader } from "./pages/search/searchLoader";
 import detailsLoader from "./pages/details/detailsLoader";
 import { homeLoader } from "./pages/home/homeLoader";
 import ErrorPage from "./pages/ErrorPage";
+import { LoadingProvider } from "./context/LoadingContext";
 
 const router = createBrowserRouter([
   {
@@ -34,7 +35,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <LoadingProvider>
+      <RouterProvider router={router} />
+    </LoadingProvider>
+  );
 }
 
 export default App;

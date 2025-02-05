@@ -8,18 +8,13 @@ const FEATURED_PACKAGES = [
 ];
 
 export async function getFeaturedPackages() {
+  const promises = FEATURED_PACKAGES.map(name =>
+    fetch(`https://registry.npmjs.org/${name}`)
+      .then(res => res.ok ? res.json() : Promise.reject(`Failed to fetch package: ${name}`))
+  );
+
   try {
-
-    const promises = FEATURED_PACKAGES.map(async (name) => {
-      const res = await fetch(`https://registry.npmjs.org/${name}`);
-      if (!res.ok) {
-        throw new Error(`Failed to fetch package: ${name}`);
-      }
-      return res.json()
-    });
-    const data = await Promise.all(promises);
-
-    return data as PackageDetails[];
+    return await Promise.all(promises) as PackageDetails[];
   } catch (error) {
     console.error('Error fetching featured packages:', error);
     return [];
