@@ -11,6 +11,8 @@ import {
   FiStar,
   FiGithub,
   FiArrowRight,
+  FiAlertCircle,
+  FiRefreshCw,
 } from "react-icons/fi";
 
 // Define the package interface
@@ -24,9 +26,18 @@ interface Package {
 
 // Package card component
 const PackageCard = ({ pack }: { pack: Package }) => {
-  // Generate mock stats for visual enhancement
-  const downloads = Math.floor(Math.random() * 1000000);
-  const stars = Math.floor(Math.random() * 10000);
+  // Generate deterministic stats based on package name for consistency
+  const getPackageScore = (name: string, max: number) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = (hash << 5) - hash + name.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
+    return Math.abs(hash) % max;
+  };
+
+  const downloads = 50000 + getPackageScore(pack.name, 950000);
+  const stars = 100 + getPackageScore(pack.name, 9900);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
@@ -104,6 +115,7 @@ export default function HomePage() {
   const { setIsLoading } = useLoading();
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const [isLoading, setIsLocalLoading] = useState(false);
 
   useEffect(() => {
     // Ensure loading state is cleared
@@ -117,11 +129,43 @@ export default function HomePage() {
     }
   };
 
-  // Show simple loader if data isn't available
-  if (!data || !data.featuredPackages) {
+  // Retry loading if featured packages failed to load
+  const handleRetry = () => {
+    setIsLocalLoading(true);
+    window.location.reload();
+  };
+
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center my-16">
         <Loader size="medium" />
+      </div>
+    );
+  }
+
+  // Show error state if there was an error
+  if (data?.error) {
+    return (
+      <div className="max-w-3xl mx-auto my-12">
+        <PageTitle title="Error - NPM Registry" />
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="flex justify-center mb-4">
+            <FiAlertCircle className="h-12 w-12 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold mb-4 text-red-700">
+            Something went wrong
+          </h1>
+          <p className="text-red-600 mb-6">{data.error}</p>
+
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              <FiRefreshCw className="inline mr-2" /> Try Again
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -263,11 +307,30 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {data.featuredPackages.map((p) => (
-              <PackageCard key={p.name} pack={p} />
-            ))}
-          </div>
+          {data?.featuredPackages?.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {data.featuredPackages.map((p) => (
+                <PackageCard key={p.name} pack={p} />
+              ))}
+            </div>
+          ) : (
+            // Display message when no featured packages are available
+            <div className="bg-gray-50 p-8 rounded-lg text-center">
+              <FiPackage size={48} className="mx-auto mb-4 text-gray-400" />
+              <h3 className="text-xl font-medium mb-2">
+                No featured packages available
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Try searching for specific packages using the search bar above.
+              </p>
+              <button
+                onClick={handleRetry}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <FiRefreshCw className="inline mr-2" /> Reload Packages
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

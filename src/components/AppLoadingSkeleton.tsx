@@ -1,128 +1,68 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { lazy, Suspense, useState, useEffect } from "react";
-import { searchLoader } from "../pages/search/searchLoader";
-import detailsLoader from "../pages/details/detailsLoader";
-import { homeLoader } from "../pages/home/homeLoader";
-import ErrorPage from "../pages/ErrorPage";
-import { LoadingProvider } from "../context/LoadingContext";
-import AppLoadingSkeleton from "../components/AppLoadingSkeleton";
+import React, { useEffect, useState } from "react";
+import { FiPackage } from "react-icons/fi";
 
-// Lazy load components for code splitting
-const Root = lazy(() => import("../pages/Root"));
-const HomePage = lazy(() => import("../pages/home/HomePage"));
-const SearchPage = lazy(() => import("../pages/search/SearchPage"));
-const DetailsPage = lazy(() => import("../pages/details/DetailsPage"));
+interface AppLoadingSkeletonProps {}
 
-// Create the router with better metadata
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: (
-      <Suspense fallback={<RouteLoadingSkeleton />}>
-        <Root />
-      </Suspense>
-    ),
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        index: true,
-        element: (
-          <Suspense fallback={<RouteLoadingSkeleton />}>
-            <HomePage />
-          </Suspense>
-        ),
-        loader: homeLoader,
-        handle: {
-          title: "NPM Registry - Search and Explore Packages",
-        },
-      },
-      {
-        path: "/search",
-        element: (
-          <Suspense fallback={<RouteLoadingSkeleton />}>
-            <SearchPage />
-          </Suspense>
-        ),
-        loader: searchLoader,
-        handle: {
-          title: "Search Results - NPM Registry",
-        },
-      },
-      {
-        path: "/packages/:name",
-        element: (
-          <Suspense fallback={<RouteLoadingSkeleton />}>
-            <DetailsPage />
-          </Suspense>
-        ),
-        loader: detailsLoader,
-        handle: {
-          title: "Package Details - NPM Registry",
-        },
-      },
-    ],
-  },
-]);
+const AppLoadingSkeleton: React.FC<AppLoadingSkeletonProps> = () => {
+  const [loadingDots, setLoadingDots] = useState(".");
+  const [loadingTime, setLoadingTime] = useState(0);
 
-// Simple route-level loading skeleton
-function RouteLoadingSkeleton() {
+  // Show different messages based on loading time
+  const getLoadingMessage = () => {
+    if (loadingTime > 8) {
+      return "Still loading... Taking longer than expected. You can refresh the page if needed.";
+    } else if (loadingTime > 4) {
+      return "Loading application resources...";
+    }
+    return "Loading application...";
+  };
+
+  // Animate loading dots
+  useEffect(() => {
+    const dotsInterval = setInterval(() => {
+      setLoadingDots((prev) => (prev.length >= 3 ? "." : prev + "."));
+    }, 400);
+
+    // Track loading time to show different messages
+    const timeInterval = setInterval(() => {
+      setLoadingTime((prev) => prev + 1);
+    }, 1000);
+
+    return () => {
+      clearInterval(dotsInterval);
+      clearInterval(timeInterval);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="p-8 rounded-lg flex flex-col items-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <div className="p-8 rounded-lg flex flex-col items-center max-w-md text-center">
+        <div className="bg-blue-600 p-4 rounded-full mb-8">
+          <FiPackage className="h-12 w-12 text-white" />
+        </div>
+
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          NPM Registry Explorer
+        </h1>
+
         <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600 animate-pulse">Loading content...</p>
+
+        <p className="text-gray-600 mb-2">
+          {getLoadingMessage()}
+          <span className="inline-block w-8">{loadingDots}</span>
+        </p>
+
+        {loadingTime > 8 && (
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Refresh Page
+          </button>
+        )}
       </div>
     </div>
   );
-}
+};
 
-function App() {
-  const [appLoaded, setAppLoaded] = useState(false);
-
-  // Simulate initial app loading and resource prefetching
-  useEffect(() => {
-    // Preload critical resources
-    const preloadResources = async () => {
-      try {
-        // Prefetch critical API data
-        const promises = [
-          // Prefetch featured packages for the homepage
-          fetch("https://registry.npmjs.org/react"),
-          fetch("https://registry.npmjs.org/typescript"),
-          // Prefetch common assets, fonts, etc. if needed
-        ];
-
-        // Wait for critical resources or timeout after 2 seconds
-        await Promise.race([
-          Promise.all(promises),
-          new Promise((resolve) => setTimeout(resolve, 2000)),
-        ]);
-      } catch (error) {
-        console.error("Error preloading resources:", error);
-      } finally {
-        // Minimum loading time of 1 second to prevent flash
-        setTimeout(() => setAppLoaded(true), 1000);
-      }
-    };
-
-    preloadResources();
-  }, []);
-
-  // Update the default page title
-  useEffect(() => {
-    document.title = "NPM Registry - Search and Explore Packages";
-  }, []);
-
-  // Show app loading skeleton while initial resources are loading
-  if (!appLoaded) {
-    return <AppLoadingSkeleton />;
-  }
-
-  return (
-    <LoadingProvider>
-      <RouterProvider router={router} />
-    </LoadingProvider>
-  );
-}
-
-export default App;
+export default AppLoadingSkeleton;

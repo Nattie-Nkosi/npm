@@ -20,27 +20,46 @@ import {
   FiClock,
   FiLock,
   FiCheck,
+  FiAlertCircle,
+  FiRefreshCw,
 } from "react-icons/fi";
 
 export default function DetailsPage() {
-  const { details } = useLoaderData() as DetailsLoaderResult;
+  const loaderData = useLoaderData() as DetailsLoaderResult;
   const { isLoading, setIsLoading } = useLoading();
   const { name } = useParams();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [readmeExpanded, setReadmeExpanded] = useState(true);
 
-  // Generate mock data for visual enhancement (since API doesn't provide these)
-  const mockStats = {
-    downloads: Math.floor(Math.random() * 10000000) + 500000,
-    stars: Math.floor(Math.random() * 50000) + 1000,
-    version: details?.version || "1.0.0",
-    lastUpdated: new Date(
-      Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)
-    )
-      .toISOString()
-      .split("T")[0], // Random date within last 30 days
+  // Get details from loader data, handle case where it might be undefined
+  const details = loaderData?.details;
+  const error = loaderData?.error;
+
+  // Generate deterministic stats for packages
+  const getPackageScore = (packageName: string, min: number, max: number) => {
+    let hash = 0;
+    for (let i = 0; i < packageName.length; i++) {
+      hash = (hash << 5) - hash + packageName.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
+    return min + (Math.abs(hash) % (max - min));
   };
+
+  // Generate mock data for visual enhancement (since API doesn't provide these)
+  const mockStats = details
+    ? {
+        downloads: getPackageScore(details.name, 500000, 10000000),
+        stars: getPackageScore(details.name, 1000, 50000),
+        version: details.version || "1.0.0",
+        lastUpdated: new Date(
+          Date.now() -
+            getPackageScore(details.name, 1, 30) * 24 * 60 * 60 * 1000
+        )
+          .toISOString()
+          .split("T")[0],
+      }
+    : null;
 
   useEffect(() => {
     setIsLoading(false);
@@ -50,6 +69,8 @@ export default function DetailsPage() {
   }, [setIsLoading]);
 
   const handleCopyToClipboard = () => {
+    if (!details) return;
+
     const installCommand = `npm install ${details.name}`;
     navigator.clipboard.writeText(installCommand).then(() => {
       setCopied(true);
@@ -70,10 +91,46 @@ export default function DetailsPage() {
     setReadmeExpanded(!readmeExpanded);
   };
 
-  if (!details) {
+  // Handle loading state
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center my-16">
         <Loader size="medium" />
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error || !details) {
+    return (
+      <div className="max-w-3xl mx-auto my-12">
+        <PageTitle title={`Error - NPM Registry`} />
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="flex justify-center mb-4">
+            <FiAlertCircle className="h-12 w-12 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold mb-4 text-red-700">
+            Error Loading Package Details
+          </h1>
+          <p className="text-red-600 mb-6">
+            {error || `Could not load details for package "${name}".`}
+          </p>
+
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              <FiRefreshCw className="inline mr-2" /> Try Again
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              <FiArrowLeft className="inline mr-2" /> Go Back
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -101,21 +158,21 @@ export default function DetailsPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold">{details.name}</h1>
-              <p className="text-gray-500 mt-1">v{mockStats.version}</p>
+              <p className="text-gray-500 mt-1">v{mockStats?.version}</p>
             </div>
           </div>
           <div className="flex gap-3 flex-wrap">
             <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
               <FiDownload className="mr-1 text-blue-600" />
-              <span>{formatNumber(mockStats.downloads)} downloads</span>
+              <span>{formatNumber(mockStats?.downloads || 0)} downloads</span>
             </div>
             <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
               <FiStar className="mr-1 text-yellow-500" />
-              <span>{formatNumber(mockStats.stars)} stars</span>
+              <span>{formatNumber(mockStats?.stars || 0)} stars</span>
             </div>
             <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
               <FiClock className="mr-1 text-green-600" />
-              <span>Updated {mockStats.lastUpdated}</span>
+              <span>Updated {mockStats?.lastUpdated}</span>
             </div>
           </div>
         </div>
@@ -279,7 +336,7 @@ export default function DetailsPage() {
       </div>
 
       {/* README */}
-      {details.readme && (
+      {details.readme ? (
         <div className="bg-white shadow-md rounded-lg overflow-hidden mb-6">
           <div className="flex justify-between items-center px-6 py-4 border-b">
             <h3 className="text-lg font-bold flex items-center gap-2">
@@ -297,6 +354,14 @@ export default function DetailsPage() {
               <ReadmeRenderer content={details.readme} />
             </div>
           )}
+        </div>
+      ) : (
+        <div className="bg-gray-50 rounded-lg p-8 text-center my-8">
+          <FiBook size={32} className="mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-medium">No README available</h3>
+          <p className="text-gray-600 mt-2">
+            This package does not have a README file.
+          </p>
         </div>
       )}
     </div>

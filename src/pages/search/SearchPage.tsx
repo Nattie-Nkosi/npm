@@ -8,7 +8,7 @@ import PackageListItem from "../../components/PackageListItem";
 import { SearchLoaderResult } from "./searchLoader";
 import { Loader } from "../../components/Loader";
 import { useLoading } from "../../context/LoadingContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import PageTitle from "../../components/PageTitle";
 import {
   FiSearch,
@@ -18,6 +18,7 @@ import {
   FiArrowDown,
   FiList,
   FiGrid,
+  FiAlertCircle,
 } from "react-icons/fi";
 import { SearchResultSkeleton } from "../../components/PackageCardSkeleton";
 
@@ -47,23 +48,37 @@ export default function SearchPage() {
     };
   }, [setIsLoading]);
 
-  // Apply filter and sorting to results
-  const processedResults = data?.searchResults
-    ? [...data.searchResults]
+  // Use useMemo to optimize filtering and sorting operations for better performance
+  const processedResults = useMemo(() => {
+    if (!data?.searchResults) return [];
+
+    return (
+      [...data.searchResults]
         // Filter by local filter query if present
-        .filter(
-          (item) =>
-            !filterQuery ||
-            item.name.toLowerCase().includes(filterQuery.toLowerCase()) ||
-            (item.description &&
-              item.description
-                .toLowerCase()
-                .includes(filterQuery.toLowerCase())) ||
-            (item.keywords &&
-              item.keywords.some((kw) =>
-                kw.toLowerCase().includes(filterQuery.toLowerCase())
-              ))
-        )
+        .filter((item) => {
+          if (!filterQuery) return true;
+
+          const query = filterQuery.toLowerCase();
+
+          // Check if matches name
+          if (item.name.toLowerCase().includes(query)) return true;
+
+          // Check if matches description
+          if (
+            item.description &&
+            item.description.toLowerCase().includes(query)
+          )
+            return true;
+
+          // Check if matches keywords
+          if (
+            item.keywords &&
+            item.keywords.some((kw) => kw.toLowerCase().includes(query))
+          )
+            return true;
+
+          return false;
+        })
         // Sort based on selected sort option
         .sort((a, b) => {
           switch (sortBy) {
@@ -72,24 +87,47 @@ export default function SearchPage() {
                 ? a.name.localeCompare(b.name)
                 : b.name.localeCompare(a.name);
             case "popularity":
-              // Mock popularity based on downloads
-              const aDownloads = Math.floor(Math.random() * 10000);
-              const bDownloads = Math.floor(Math.random() * 10000);
+              // Mock popularity based on consistent hash of package name
+              // to keep the sorting consistent between renders
+              const getPopularityScore = (name: string) => {
+                let hash = 0;
+                for (let i = 0; i < name.length; i++) {
+                  hash = (hash << 5) - hash + name.charCodeAt(i);
+                  hash |= 0; // Convert to 32bit integer
+                }
+                return Math.abs(hash) % 10000;
+              };
+
+              const aScore = getPopularityScore(a.name);
+              const bScore = getPopularityScore(b.name);
+
               return sortDirection === "asc"
-                ? aDownloads - bDownloads
-                : bDownloads - aDownloads;
+                ? aScore - bScore
+                : bScore - aScore;
             case "newest":
-              // Mock dates for sorting
-              const aDate = new Date(Date.now() - Math.random() * 10000000000);
-              const bDate = new Date(Date.now() - Math.random() * 10000000000);
-              return sortDirection === "asc"
-                ? aDate.getTime() - bDate.getTime()
-                : bDate.getTime() - aDate.getTime();
-            default: // relevance
-              return 0; // Keep original order from API for relevance
+              // Mock consistent dates based on package name
+              const getDateScore = (name: string) => {
+                let hash = 0;
+                for (let i = 0; i < name.length; i++) {
+                  hash = (hash << 5) - hash + name.charCodeAt(i);
+                  hash |= 0;
+                }
+                // Generate a timestamp within the last year
+                return (
+                  Date.now() - (Math.abs(hash) % (365 * 24 * 60 * 60 * 1000))
+                );
+              };
+
+              const aDate = getDateScore(a.name);
+              const bDate = getDateScore(b.name);
+
+              return sortDirection === "asc" ? aDate - bDate : bDate - aDate;
+            default: // relevance - keep original order
+              return 0;
           }
         })
-    : [];
+    );
+  }, [data?.searchResults, filterQuery, sortBy, sortDirection]);
 
   // Handle new search submission
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -129,11 +167,42 @@ export default function SearchPage() {
   }
 
   // Rendering loading state for initial load
-  if (!data || !data.searchResults) {
+  if (!data) {
     return (
       <div className="flex flex-col justify-center items-center my-16">
         <Loader size="medium" />
         <p className="mt-4 text-gray-600">Loading search results...</p>
+      </div>
+    );
+  }
+
+  // Display error state if there's an error
+  if (data.error) {
+    return (
+      <div className="max-w-3xl mx-auto my-12">
+        <PageTitle title={`Search Error - NPM Registry`} />
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="flex justify-center mb-4">
+            <FiAlertCircle className="h-12 w-12 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold mb-4 text-red-700">Search Error</h1>
+          <p className="text-red-600 mb-6">{data.error}</p>
+
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              <FiRefreshCw className="inline mr-2" /> Try Again
+            </button>
+            <Link
+              to="/"
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Return to Home
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
