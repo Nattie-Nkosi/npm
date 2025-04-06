@@ -18,7 +18,7 @@ export default function RouteChangeHandler() {
     return () => {
       clearTimeout(timer);
     };
-  }, [location.pathname, setIsLoading]);
+  }, [location.pathname]); // Removed setIsLoading from dependency array
 
   return null; // This component doesn't render anything
 }

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+} from "react";
 import { Loader } from "../components/Loader";
 
 interface LoadingContextType {
@@ -15,26 +21,32 @@ export const LoadingProvider: React.FC<{ children: ReactNode }> = ({
   const [loadingTimeout, setLoadingTimeout] = useState<number | null>(null);
 
   // Set loading with a maximum timeout to prevent infinite loading
-  const setLoadingWithTimeout = (loading: boolean) => {
-    setIsLoading(loading);
+  // Using useCallback to memoize the function and prevent it from changing on every render
+  const setLoadingWithTimeout = useCallback(
+    (loading: boolean) => {
+      setIsLoading(loading);
 
-    // Clear any existing timeout
-    if (loadingTimeout) {
-      clearTimeout(loadingTimeout);
-      setLoadingTimeout(null);
-    }
-
-    // If setting to loading, add a safety timeout
-    if (loading) {
-      const timeoutId = window.setTimeout(() => {
-        console.warn("Loading timeout reached, forcing loading state to false");
-        setIsLoading(false);
+      // Clear any existing timeout
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
         setLoadingTimeout(null);
-      }, 5000); // Maximum 5 seconds loading time
+      }
 
-      setLoadingTimeout(timeoutId);
-    }
-  };
+      // If setting to loading, add a safety timeout
+      if (loading) {
+        const timeoutId = window.setTimeout(() => {
+          console.warn(
+            "Loading timeout reached, forcing loading state to false"
+          );
+          setIsLoading(false);
+          setLoadingTimeout(null);
+        }, 5000); // Maximum 5 seconds loading time
+
+        setLoadingTimeout(timeoutId);
+      }
+    },
+    [loadingTimeout]
+  );
 
   // Clean up timeout on unmount
   React.useEffect(() => {
