@@ -2,7 +2,14 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      screens: {
+        xs: "480px",
+      },
+    },
   },
-  plugins: [],
+  plugins: [
+    // eslint-disable-next-line no-undef
+    require("@tailwindcss/line-clamp"),
+  ],
 };

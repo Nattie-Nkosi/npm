@@ -10,13 +10,10 @@ const FEATURED_PACKAGES = [
 export async function getFeaturedPackages() {
   const promises = FEATURED_PACKAGES.map(name =>
     fetch(`https://registry.npmjs.org/${name}`)
-      .then(res => res.ok ? res.json() : Promise.reject(`Failed to fetch package: ${name}`))
+      .then(res => res.ok ? res.json() : null)
+      .catch(() => null)
   );
 
-  try {
-    return await Promise.all(promises) as PackageDetails[];
-  } catch (error) {
-    console.error('Error fetching featured packages:', error);
-    return [];
-  }
+  const results = await Promise.all(promises);
+  return results.filter(Boolean) as PackageDetails[];
 }

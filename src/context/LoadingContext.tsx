@@ -1,4 +1,3 @@
-// src/context/LoadingContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { Loader } from "../components/Loader";
 
@@ -19,7 +18,10 @@ export const LoadingProvider: React.FC<{ children: ReactNode }> = ({
       {children}
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Loader size="large" className="text-white" />
+          <div className="bg-white p-6 rounded-lg shadow-xl">
+            <Loader size="large" />
+            <p className="text-center mt-4">Loading...</p>
+          </div>
         </div>
       )}
     </LoadingContext.Provider>
