@@ -1,15 +1,1 @@
-@import "tailwindcss/preflight";
-@tailwind utilities;
-@tailwind utilities;
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-}
+@import "tailwindcss";

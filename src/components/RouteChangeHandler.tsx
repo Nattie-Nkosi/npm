@@ -1,13 +1,24 @@
-import { Outlet } from "react-router-dom";
-import Header from "../components/Header";
-import RouteChangeHandler from "../components/RouteChangeHandler";
+// src/components/RouteChangeHandler.tsx
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useLoading } from "../context/LoadingContext";
 
-export default function Root() {
-  return (
-    <div className="container mx-auto px-4 sm:px-8 md:px-12 lg:px-20">
-      <RouteChangeHandler />
-      <Header />
-      <Outlet />
-    </div>
-  );
+export default function RouteChangeHandler() {
+  const location = useLocation();
+  const { setIsLoading } = useLoading();
+
+  // Reset loading state on route change
+  useEffect(() => {
+    setIsLoading(true);
+    // Small timeout to allow loading to show
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [location.pathname, setIsLoading]);
+
+  return null; // This component doesn't render anything
 }
