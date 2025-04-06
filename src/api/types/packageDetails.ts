@@ -1,4 +1,7 @@
 export interface PackageDetails {
+  repository: any;
+  homepage: any;
+  version: string;
   name: string;
   description: string;
   readme: string;
