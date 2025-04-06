@@ -35,7 +35,7 @@ export default function Footer() {
         { label: "NPM Blog", path: "https://blog.npmjs.org/", external: true },
         {
           label: "GitHub",
-          path: "https://github.com/Nattie-Nkosi/npm-registry-search",
+          path: "https://github.com/Nattie-Nkosi/npm",
           external: true,
         },
         {
@@ -102,7 +102,7 @@ export default function Footer() {
             </p>
             <div className="flex space-x-4 pt-2">
               <a
-                href="https://github.com/Nattie-Nkosi/npm-registry-search"
+                href="https://github.com/Nattie-Nkosi/npm"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-gray-900"
@@ -111,7 +111,7 @@ export default function Footer() {
                 <FiGithub className="h-5 w-5" />
               </a>
               <a
-                href="https://twitter.com"
+                href="https://x.com/NattieNkosi"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-blue-400"
@@ -120,7 +120,7 @@ export default function Footer() {
                 <FiTwitter className="h-5 w-5" />
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/nkosinathi-nkosi/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-blue-700"

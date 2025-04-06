@@ -29,9 +29,11 @@ export default function Root() {
       {/* Header - directly imported */}
       <Header />
 
-      {/* Main content */}
+      {/* Main content - now centered with container */}
       <main className="flex-grow">
-        <Outlet />
+        <div className="container mx-auto px-4">
+          <Outlet />
+        </div>
       </main>
 
       {/* Footer - directly imported */}

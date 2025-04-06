@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  FiPackage,
-  FiSearch,
-  FiMenu,
-  FiX,
-  FiHeart,
-  FiGithub,
-} from "react-icons/fi";
+import { FiPackage, FiMenu, FiX, FiHeart, FiGithub } from "react-icons/fi";
 import SearchInput from "./Searchinput";
 
 export default function Header() {
@@ -65,7 +58,7 @@ export default function Header() {
 
             {/* GitHub Link */}
             <a
-              href="https://github.com/Nattie-Nkosi/npm-registry-search"
+              href="https://github.com/Nattie-Nkosi/npm"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
