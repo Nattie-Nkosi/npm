@@ -1,5 +1,6 @@
+// src/components/Header.tsx
 import { Link } from "react-router-dom";
-import SearchInput from "./SearchInput";
+import SearchInput from "./Searchinput"; // Updated import to match actual filename
 
 export default function Header() {
   return (
