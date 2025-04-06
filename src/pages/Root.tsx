@@ -10,7 +10,7 @@ const ProgressBar = ({ isNavigating }: { isNavigating: boolean }) => {
   return (
     <div className="fixed top-0 left-0 right-0 h-1 z-50">
       <div
-        className="h-full bg-blue-600 animate-pulse"
+        className="h-full bg-blue-600 animate-pulse transition-all duration-300 ease-in-out"
         style={{ width: "70%" }}
       />
     </div>
@@ -23,6 +23,7 @@ export default function Root() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Only display the progress bar, not an additional loading indicator */}
       <ProgressBar isNavigating={isNavigating} />
       <RouteChangeHandler />
 

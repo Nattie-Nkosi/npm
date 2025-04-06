@@ -4,6 +4,7 @@ import React, {
   useState,
   ReactNode,
   useCallback,
+  useEffect,
 } from "react";
 import { Loader } from "../components/Loader";
 
@@ -14,14 +15,37 @@ interface LoadingContextType {
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
-export const LoadingProvider: React.FC<{ children: ReactNode }> = ({
+interface LoadingProviderProps {
+  children: ReactNode;
+  initialLoading?: boolean;
+}
+
+export const LoadingProvider: React.FC<LoadingProviderProps> = ({
   children,
+  initialLoading = false,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(initialLoading);
   const [loadingTimeout, setLoadingTimeout] = useState<number | null>(null);
+  const [showOverlay, setShowOverlay] = useState(false);
+
+  // Delay showing the loading overlay to prevent flashing during quick loads
+  useEffect(() => {
+    let overlayTimer: number | null = null;
+
+    if (isLoading) {
+      overlayTimer = window.setTimeout(() => {
+        setShowOverlay(true);
+      }, 300); // Only show overlay if loading takes more than 300ms
+    } else {
+      setShowOverlay(false);
+    }
+
+    return () => {
+      if (overlayTimer) clearTimeout(overlayTimer);
+    };
+  }, [isLoading]);
 
   // Set loading with a maximum timeout to prevent infinite loading
-  // Using useCallback to memoize the function and prevent it from changing on every render
   const setLoadingWithTimeout = useCallback(
     (loading: boolean) => {
       setIsLoading(loading);
@@ -39,6 +63,7 @@ export const LoadingProvider: React.FC<{ children: ReactNode }> = ({
             "Loading timeout reached, forcing loading state to false"
           );
           setIsLoading(false);
+          setShowOverlay(false);
           setLoadingTimeout(null);
         }, 5000); // Maximum 5 seconds loading time
 
@@ -49,7 +74,7 @@ export const LoadingProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   // Clean up timeout on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (loadingTimeout) {
         clearTimeout(loadingTimeout);
@@ -62,8 +87,9 @@ export const LoadingProvider: React.FC<{ children: ReactNode }> = ({
       value={{ isLoading, setIsLoading: setLoadingWithTimeout }}
     >
       {children}
-      {isLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {/* Only render overlay if showOverlay is true - prevents flashing */}
+      {showOverlay && isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-200">
           <div className="bg-white p-6 rounded-lg shadow-xl">
             <Loader size="large" />
             <p className="text-center mt-4">Loading...</p>

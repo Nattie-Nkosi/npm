@@ -1,21 +1,19 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { searchLoader } from "./pages/search/searchLoader";
 import detailsLoader from "./pages/details/detailsLoader";
 import { homeLoader } from "./pages/home/homeLoader";
 import ErrorPage from "./pages/ErrorPage";
 import { LoadingProvider } from "./context/LoadingContext";
-// Import the Root and other components directly to fix the initial load
+// Import the Root component directly
 import Root from "./pages/Root";
 
 // Simple route-level loading component
 function RouteLoadingSkeleton() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="p-8 rounded-lg flex flex-col items-center">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600">Loading content...</p>
-      </div>
+    <div className="flex items-center justify-center p-8">
+      <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="text-gray-600 ml-4">Loading content...</p>
     </div>
   );
 }
@@ -73,62 +71,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  // Simpler loading state management with a timeout fallback
-  const [appLoaded, setAppLoaded] = useState(false);
-
-  useEffect(() => {
-    // Ensure we exit the loading state within a reasonable time
-    // This prevents infinite loading
-    const timeoutId = setTimeout(() => {
-      setAppLoaded(true);
-    }, 2000); // Maximum 2 seconds loading time
-
-    // Normal loading logic
-    const loadApp = async () => {
-      try {
-        // Still try to preload critical resources
-        const promises = [
-          // Prefetch featured packages for the homepage
-          fetch("https://registry.npmjs.org/react").catch(() => null),
-          fetch("https://registry.npmjs.org/typescript").catch(() => null),
-        ];
-
-        // Wait for critical resources but with a timeout
-        await Promise.race([
-          Promise.all(promises),
-          new Promise((resolve) => setTimeout(resolve, 1500)),
-        ]);
-
-        setAppLoaded(true);
-      } catch (error) {
-        console.error("Error during app initialization:", error);
-        setAppLoaded(true); // Ensure we still exit loading state on error
-      }
-    };
-
-    loadApp();
-
-    // Cleanup the timeout to prevent memory leaks
-    return () => clearTimeout(timeoutId);
-  }, []);
-
   // Update the default page title
-  useEffect(() => {
-    document.title = "NPM Registry - Search and Explore Packages";
-  }, []);
-
-  // Simple loading state with a fallback timeout
-  if (!appLoaded) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600">Loading application...</p>
-      </div>
-    );
-  }
+  document.title = "NPM Registry - Search and Explore Packages";
 
   return (
-    <LoadingProvider>
+    <LoadingProvider initialLoading={false}>
       <RouterProvider router={router} />
     </LoadingProvider>
   );
