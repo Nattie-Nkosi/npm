@@ -20,19 +20,36 @@ export async function getPackage(name: string, retries = 2): Promise<PackageDeta
 
 	for (let attempt = 0; attempt <= retries; attempt++) {
 		try {
-			const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(normalizedName)}`);
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+			const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(normalizedName)}`, {
+				signal: controller.signal,
+				headers: {
+					'Accept': 'application/json',
+				}
+			});
+
+			clearTimeout(timeoutId);
 
 			if (res.ok) {
 				const data = await res.json();
 
+				// Get the latest version information
+				const latestVersion = data['dist-tags']?.latest || Object.keys(data.versions || {}).pop();
+				const versionData = data.versions?.[latestVersion] || {};
+
 				// Enhance data with defaults for missing fields
-				const enhancedData = {
-					...data,
-					description: data.description || 'No description available',
-					readme: data.readme || 'No README available for this package.',
-					license: data.license || 'Not specified',
-					author: data.author || { name: 'Unknown', email: '' },
+				const enhancedData: PackageDetails = {
+					name: data.name,
+					version: latestVersion || '0.0.0',
+					description: versionData.description || data.description || 'No description available',
+					readme: versionData.readme || data.readme || 'No README available for this package.',
+					license: versionData.license || data.license || 'Not specified',
+					author: versionData.author || data.author || { name: 'Unknown', email: '' },
 					maintainers: data.maintainers || [],
+					repository: versionData.repository || data.repository,
+					homepage: versionData.homepage || data.homepage
 				};
 
 				// Update cache
@@ -60,7 +77,12 @@ export async function getPackage(name: string, retries = 2): Promise<PackageDeta
 
 			throw lastError;
 		} catch (error) {
-			lastError = error instanceof Error ? error : new Error('An unexpected error occurred');
+			// Handle timeout errors
+			if (error instanceof Error && error.name === 'AbortError') {
+				lastError = new Error('Request timed out. Please try again.');
+			} else {
+				lastError = error instanceof Error ? error : new Error('An unexpected error occurred');
+			}
 
 			if (attempt < retries) {
 				await new Promise(resolve => setTimeout(resolve, 800));

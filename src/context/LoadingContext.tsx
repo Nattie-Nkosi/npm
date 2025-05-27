@@ -28,27 +28,16 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({
   children,
   initialLoading = false,
 }) => {
-  const [isLoading, setIsLoading] = useState(initialLoading);
+  const [isLoading, setIsLoadingState] = useState(initialLoading);
   const [showOverlay, setShowOverlay] = useState(false);
   const [longLoading, setLongLoading] = useState(false);
-  const loadingTimeoutRef = useRef<number | null>(null);
+  const loadingCountRef = useRef(0);
   const overlayTimeoutRef = useRef<number | null>(null);
   const longLoadingTimeoutRef = useRef<number | null>(null);
 
-  // Force reset loading state on component mount to avoid stuck states
+  // Clean up all timeouts on unmount
   useEffect(() => {
-    const resetTimeout = setTimeout(() => {
-      setIsLoading(false);
-      setShowOverlay(false);
-      setLongLoading(false);
-    }, 100);
-
-    // Clean up all timeouts when component unmounts
     return () => {
-      clearTimeout(resetTimeout);
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
       if (overlayTimeoutRef.current) {
         clearTimeout(overlayTimeoutRef.current);
       }
@@ -58,83 +47,74 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({
     };
   }, []);
 
-  // Delay showing the loading overlay to prevent flashing during quick loads
+  // Handle loading state changes with proper cleanup
   useEffect(() => {
-    if (isLoading) {
-      // Clear any existing overlay timeout
+    if (isLoading && loadingCountRef.current > 0) {
+      // Clear any existing timeouts
       if (overlayTimeoutRef.current) {
         clearTimeout(overlayTimeoutRef.current);
         overlayTimeoutRef.current = null;
       }
-
       if (longLoadingTimeoutRef.current) {
         clearTimeout(longLoadingTimeoutRef.current);
         longLoadingTimeoutRef.current = null;
       }
 
-      // Set a new overlay timeout
+      // Show overlay after 400ms to prevent flashing
       overlayTimeoutRef.current = window.setTimeout(() => {
         setShowOverlay(true);
         overlayTimeoutRef.current = null;
 
-        // Set long loading timeout to show refresh option
+        // Show refresh option after 10 seconds
         longLoadingTimeoutRef.current = window.setTimeout(() => {
           setLongLoading(true);
           longLoadingTimeoutRef.current = null;
-        }, 10000); // Show refresh option after 10 seconds
-      }, 400); // Only show overlay if loading takes more than 400ms
+        }, 10000);
+      }, 400);
     } else {
-      // Clear overlay and long loading timeouts if we're no longer loading
+      // Clear timeouts when loading stops
       if (overlayTimeoutRef.current) {
         clearTimeout(overlayTimeoutRef.current);
         overlayTimeoutRef.current = null;
       }
-
       if (longLoadingTimeoutRef.current) {
         clearTimeout(longLoadingTimeoutRef.current);
         longLoadingTimeoutRef.current = null;
       }
 
-      // Delay hiding overlay slightly for smoother transitions
-      setTimeout(() => {
+      // Hide overlay with a slight delay for smooth transition
+      const hideTimer = setTimeout(() => {
         setShowOverlay(false);
         setLongLoading(false);
       }, 100);
+
+      return () => clearTimeout(hideTimer);
     }
   }, [isLoading]);
 
-  // Set loading with a maximum timeout to prevent infinite loading
-  const setLoadingWithTimeout = useCallback((loading: boolean) => {
-    setIsLoading(loading);
-
-    // Clear any existing timeout
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
-
-    // If setting to loading, add a safety timeout
+  // Set loading with reference counting to handle concurrent operations
+  const setIsLoading = useCallback((loading: boolean) => {
     if (loading) {
-      loadingTimeoutRef.current = window.setTimeout(() => {
-        console.warn("Loading timeout reached, forcing loading state to false");
-        setIsLoading(false);
-        setShowOverlay(false);
-        setLongLoading(false);
-        loadingTimeoutRef.current = null;
-      }, 15000); // 15 second maximum loading time
+      loadingCountRef.current += 1;
+      setIsLoadingState(true);
+    } else {
+      loadingCountRef.current = Math.max(0, loadingCountRef.current - 1);
+      if (loadingCountRef.current === 0) {
+        setIsLoadingState(false);
+      }
     }
   }, []);
 
-  // Convenience methods to start and stop loading
+  // Convenience methods
   const startLoading = useCallback(() => {
-    setLoadingWithTimeout(true);
-  }, [setLoadingWithTimeout]);
+    setIsLoading(true);
+  }, [setIsLoading]);
 
   const stopLoading = useCallback(() => {
-    setLoadingWithTimeout(false);
-  }, [setLoadingWithTimeout]);
+    setIsLoading(false);
+  }, [setIsLoading]);
 
-  // Force refresh the page if loading takes too long
+  // Force refresh the page
   const handleRefresh = useCallback(() => {
     window.location.reload();
   }, []);
@@ -142,15 +122,15 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({
   return (
     <LoadingContext.Provider
       value={{
-        isLoading,
-        setIsLoading: setLoadingWithTimeout,
+        isLoading: isLoading && loadingCountRef.current > 0,
+        setIsLoading,
         startLoading,
         stopLoading,
       }}
     >
       {children}
-      {/* Only render overlay if showOverlay is true - prevents flashing */}
-      {showOverlay && isLoading && (
+      {/* Loading overlay */}
+      {showOverlay && isLoading && loadingCountRef.current > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-200">
           <div className="bg-white p-6 rounded-lg shadow-xl">
             <Loader size="large" />

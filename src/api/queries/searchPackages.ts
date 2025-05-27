@@ -21,17 +21,34 @@ export async function searchPackages(term: string, retries = 2): Promise<Package
 
 	for (let attempt = 0; attempt <= retries; attempt++) {
 		try {
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
 			const res = await fetch(
-				`https://registry.npmjs.org/-/v1/search?text=${encodedTerm}&size=50`
+				`https://registry.npmjs.org/-/v1/search?text=${encodedTerm}&size=50`,
+				{
+					signal: controller.signal,
+					headers: {
+						'Accept': 'application/json',
+					}
+				}
 			);
+
+			clearTimeout(timeoutId);
 
 			if (res.ok) {
 				const data: SearchResponse = await res.json();
-				return data.objects.map(({ package: { name, description, version, keywords } }) => ({
-					name,
-					description,
-					version,
-					keywords,
+
+				// Handle empty results gracefully
+				if (!data.objects || data.objects.length === 0) {
+					return [];
+				}
+
+				return data.objects.map(({ package: pkg }) => ({
+					name: pkg.name || 'Unknown',
+					description: pkg.description || '',
+					version: pkg.version || '0.0.0',
+					keywords: Array.isArray(pkg.keywords) ? pkg.keywords : [],
 				}));
 			}
 
@@ -48,7 +65,7 @@ export async function searchPackages(term: string, retries = 2): Promise<Package
 			}
 
 			// Handle other HTTP errors
-			const errorText = await res.text();
+			const errorText = await res.text().catch(() => res.statusText);
 			lastError = new Error(`Search failed (${res.status}): ${errorText || res.statusText}`);
 
 			if (attempt < retries) {
@@ -59,9 +76,14 @@ export async function searchPackages(term: string, retries = 2): Promise<Package
 
 			throw lastError;
 		} catch (error) {
-			lastError = error instanceof Error
-				? error
-				: new Error('An unexpected error occurred');
+			// Handle timeout errors
+			if (error instanceof Error && error.name === 'AbortError') {
+				lastError = new Error('Search request timed out. Please try again.');
+			} else {
+				lastError = error instanceof Error
+					? error
+					: new Error('An unexpected error occurred');
+			}
 
 			if (attempt < retries) {
 				console.warn(`Search failed. Retrying (${attempt + 1}/${retries})...`, error);

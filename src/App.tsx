@@ -76,7 +76,6 @@ const router = createBrowserRouter([
 function App() {
   const [appLoaded, setAppLoaded] = useState(false);
 
-  // Fix for infinite loading: ensure app loads even if preload fails
   useEffect(() => {
     // Update the default page title
     document.title = "NPM Registry - Search and Explore Packages";
@@ -98,6 +97,9 @@ function App() {
           // Simple prefetch of a critical resource
           await fetch("https://registry.npmjs.org/react", {
             signal: controller.signal,
+            headers: {
+              Accept: "application/json",
+            },
           });
         } catch (fetchError) {
           // Log but continue even if fetch fails
@@ -108,12 +110,10 @@ function App() {
 
         // Minimum loading time of 800ms to prevent flash
         await new Promise((resolve) => setTimeout(resolve, 800));
-
-        // Set app as loaded
-        setAppLoaded(true);
       } catch (error) {
         console.error("Error during preload:", error);
-        // Still set app as loaded even if something went wrong
+      } finally {
+        // Always set app as loaded
         setAppLoaded(true);
       }
     };

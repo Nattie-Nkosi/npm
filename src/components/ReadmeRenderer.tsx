@@ -42,137 +42,163 @@ export default function ReadmeRenderer({
     // Generate a unique ID for headings
     const generateId = (text: string, index: number): string => {
       const baseId = text.toLowerCase().replace(/[^\w]+/g, "-");
-      // Check if this ID already exists in our headings
       const existingIds = extractedHeadings.map((h) => h.id);
       if (!existingIds.includes(baseId)) return baseId;
-
-      // If ID exists, append a number
       return `${baseId}-${index}`;
     };
 
-    // Process content and extract headings
-    let processed = content
-      // First handle code blocks (need to do this before other elements)
-      .replace(/```(\w*)\n([\s\S]*?)\n```/g, (_, language, code) => {
-        const lang = language || "text";
-        return `<pre class="bg-gray-800 text-white p-4 rounded-md overflow-x-auto my-4"><code class="language-${lang}">${escapeHtml(
-          code
-        )}</code></pre>`;
-      })
+    // Store code blocks temporarily
+    const codeBlocks: string[] = [];
+    let processedText = content;
 
-      // Headings with ID for linking
-      .replace(/^(#{1,6})\s+(.*?)$/gm, (_, hashes, text, index) => {
+    // First, extract and store code blocks to prevent them from being processed
+    processedText = processedText.replace(
+      /```(\w*)\n([\s\S]*?)\n```/g,
+      (_, language, code) => {
+        const lang = language || "text";
+        const index = codeBlocks.length;
+        codeBlocks.push(
+          `<pre class="bg-gray-800 text-white p-4 rounded-md overflow-x-auto my-4"><code class="language-${lang}">${escapeHtml(
+            code
+          )}</code></pre>`
+        );
+        return `__CODE_BLOCK_${index}__`;
+      }
+    );
+
+    // Process inline code before other replacements
+    processedText = processedText.replace(
+      /`([^`]+)`/g,
+      '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>'
+    );
+
+    // Process headings
+    processedText = processedText.replace(
+      /^(#{1,6})\s+(.*?)$/gm,
+      (_, hashes, text) => {
         const level = hashes.length;
         const id = generateId(text, extractedHeadings.length);
         extractedHeadings.push({ id, text, level });
 
-        return `<h${level} id="${id}" class="group flex items-center font-bold my-4 scroll-mt-20">
-          ${text}
-          <a href="#${id}" class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <span class="text-blue-500"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></span>
-          </a>
-        </h${level}>`;
-      })
+        const sizeClass =
+          level === 1
+            ? "text-3xl"
+            : level === 2
+            ? "text-2xl"
+            : level === 3
+            ? "text-xl"
+            : level === 4
+            ? "text-lg"
+            : "text-base";
 
-      // Bold text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        return `<h${level} id="${id}" class="group flex items-center font-bold my-4 scroll-mt-20 ${sizeClass}">
+        ${text}
+        <a href="#${id}" class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span class="text-blue-500"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></span>
+        </a>
+      </h${level}>`;
+      }
+    );
 
-      // Italic text
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    // Bold text
+    processedText = processedText.replace(
+      /\*\*(.*?)\*\*/g,
+      "<strong>$1</strong>"
+    );
 
-      // Inline code
-      .replace(
-        /`([^`]+)`/g,
-        '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>'
-      )
+    // Italic text
+    processedText = processedText.replace(/\*(.*?)\*/g, "<em>$1</em>");
 
-      // Links
-      .replace(
-        /\[(.*?)\]\((.*?)\)/g,
-        '<a href="$2" class="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">$1</a>'
-      )
+    // Links
+    processedText = processedText.replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" class="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
 
-      // Images
-      .replace(
-        /!\[(.*?)\]\((.*?)\)/g,
-        '<img src="$2" alt="$1" class="max-w-full my-4 rounded-md" loading="lazy" />'
-      )
+    // Images
+    processedText = processedText.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      '<img src="$2" alt="$1" class="max-w-full my-4 rounded-md" loading="lazy" />'
+    );
 
-      // Fix for unordered lists
-      .replace(/^[\*\-]\s+(.*?)$/gm, '<li class="ml-6 list-disc">$1</li>')
+    // Lists
+    processedText = processedText.replace(
+      /^[\*\-]\s+(.+)$/gm,
+      '<li class="ml-6 list-disc">$1</li>'
+    );
+    processedText = processedText.replace(
+      /^\d+\.\s+(.+)$/gm,
+      '<li class="ml-6 list-decimal">$1</li>'
+    );
 
-      // Ordered lists
-      .replace(/^\d+\.\s+(.*?)$/gm, '<li class="ml-6 list-decimal">$1</li>')
+    // Wrap consecutive list items in ul/ol tags
+    processedText = processedText.replace(
+      /(<li class="ml-6 list-disc">[\s\S]*?<\/li>)+/g,
+      '<ul class="my-4 list-inside">$&</ul>'
+    );
+    processedText = processedText.replace(
+      /(<li class="ml-6 list-decimal">[\s\S]*?<\/li>)+/g,
+      '<ol class="my-4 list-inside">$&</ol>'
+    );
 
-      // Horizontal rule
-      .replace(/^---+$/gm, '<hr class="my-6 border-t border-gray-300" />')
+    // Horizontal rule
+    processedText = processedText.replace(
+      /^---+$/gm,
+      '<hr class="my-6 border-t border-gray-300" />'
+    );
 
-      // Blockquotes
-      .replace(
-        /^>\s+(.*?)$/gm,
-        '<blockquote class="pl-4 border-l-4 border-gray-300 italic my-4">$1</blockquote>'
-      )
+    // Blockquotes
+    processedText = processedText.replace(
+      /^>\s+(.+)$/gm,
+      '<blockquote class="pl-4 border-l-4 border-gray-300 italic my-4">$1</blockquote>'
+    );
 
-      // Tables (basic support)
-      .replace(/^\|(.*)\|$/gm, (match) => {
-        // Check if this is a separator row
-        if (match.includes("---")) {
-          return '<tr class="border-b border-gray-300"></tr>';
+    // Simple table support
+    processedText = processedText.replace(/\|(.+)\|/g, (match) => {
+      if (match.includes("---")) {
+        return ""; // Skip separator rows
+      }
+      const cells = match
+        .split("|")
+        .filter(Boolean)
+        .map((cell) => `<td class="border px-4 py-2">${cell.trim()}</td>`)
+        .join("");
+      return `<tr>${cells}</tr>`;
+    });
+
+    // Wrap tables
+    processedText = processedText.replace(
+      /(<tr>[\s\S]*?<\/tr>)+/g,
+      '<div class="overflow-x-auto my-4"><table class="min-w-full border-collapse border border-gray-300">$&</table></div>'
+    );
+
+    // Paragraphs - wrap lines that aren't already wrapped
+    processedText = processedText
+      .split("\n")
+      .map((line) => {
+        const trimmed = line.trim();
+        if (
+          trimmed &&
+          !trimmed.startsWith("<") &&
+          !trimmed.startsWith("__CODE_BLOCK_") &&
+          trimmed.length > 0
+        ) {
+          return `<p class="my-4">${trimmed}</p>`;
         }
-
-        // Process table cell content
-        const cells = match
-          .split("|")
-          .filter(Boolean)
-          .map((cell) => `<td class="border px-4 py-2">${cell.trim()}</td>`)
-          .join("");
-
-        return `<tr>${cells}</tr>`;
+        return line;
       })
+      .join("\n");
 
-      // Wrap table rows
-      .replace(/(<tr>.*?<\/tr>)+/gs, (match) => {
-        const rows = match.split("</tr>").filter(Boolean);
+    // Restore code blocks
+    codeBlocks.forEach((block, index) => {
+      processedText = processedText.replace(`__CODE_BLOCK_${index}__`, block);
+    });
 
-        // Create table structure
-        if (rows.length > 0) {
-          // First row is header
-          const header = `<thead>${rows[0]}</tr></thead>`;
-
-          // Rest of rows are body
-          const body = rows
-            .slice(1)
-            .map((row) => `${row}</tr>`)
-            .join("");
-
-          return `<div class="overflow-x-auto my-4"><table class="min-w-full border-collapse border border-gray-300 rounded-md">${header}<tbody>${body}</tbody></table></div>`;
-        }
-
-        return match;
-      })
-
-      // Paragraphs (handle this last)
-      .replace(/^([^<\n][^\n]+)$/gm, (_, text) => {
-        if (text.trim().length > 0) {
-          return `<p class="my-4">${text}</p>`;
-        }
-        return "";
-      })
-
-      // Clean up list items
-      .replace(/<\/li>\n<li/g, "</li><li")
-
-      // Wrap adjacent list items in ul tags
-      .replace(/(<li.*?<\/li>)+/g, '<ul class="my-4 list-inside">$&</ul>')
-
-      // Remove extra newlines
-      .replace(/\n{3,}/g, "\n\n")
-
-      // Fix double line breaks
-      .replace(/\n\n/g, "<br/><br/>");
+    // Clean up extra whitespace
+    processedText = processedText.replace(/\n{3,}/g, "\n\n");
 
     return {
-      processedContent: processed,
+      processedContent: processedText,
       headings: extractedHeadings,
     };
   }, [content]);
@@ -181,16 +207,22 @@ export default function ReadmeRenderer({
   useEffect(() => {
     if (!content) return;
 
-    // Get the content element
     const contentElement = document.querySelector(".readme-content");
     if (!contentElement) return;
 
-    // Check if content is taller than maxHeight
-    const contentHeight = contentElement.scrollHeight;
-    const containerMaxHeight =
-      typeof maxHeight === "number" ? maxHeight : parseInt(maxHeight, 10);
+    const checkHeight = () => {
+      const contentHeight = contentElement.scrollHeight;
+      const containerMaxHeight =
+        typeof maxHeight === "number" ? maxHeight : parseInt(maxHeight, 10);
 
-    setShowExpander(contentHeight > containerMaxHeight);
+      setShowExpander(contentHeight > containerMaxHeight);
+    };
+
+    // Check immediately and after a short delay (for images/fonts to load)
+    checkHeight();
+    const timer = setTimeout(checkHeight, 100);
+
+    return () => clearTimeout(timer);
   }, [content, maxHeight, processedContent]);
 
   if (!content) {
@@ -243,11 +275,8 @@ export default function ReadmeRenderer({
               {headings.map((heading) => (
                 <li
                   key={heading.id}
-                  className={`text-sm hover:text-blue-600 ${
-                    heading.level === 1
-                      ? "font-medium"
-                      : "pl-" + (heading.level - 1) * 2
-                  }`}
+                  style={{ paddingLeft: `${(heading.level - 1) * 0.5}rem` }}
+                  className="text-sm hover:text-blue-600"
                 >
                   <a
                     href={`#${heading.id}`}

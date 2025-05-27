@@ -9,17 +9,43 @@ const FEATURED_PACKAGES = [
 
 // Added retry logic and better error handling
 export async function getFeaturedPackages() {
-  const fetchWithRetry = async (name: string, retries = 2) => {
+  const fetchWithRetry = async (name: string, retries = 2): Promise<PackageDetails | null> => {
     for (let i = 0; i <= retries; i++) {
       try {
-        const res = await fetch(`https://registry.npmjs.org/${name}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+        const res = await fetch(`https://registry.npmjs.org/${name}`, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+
+        clearTimeout(timeoutId);
+
         if (res.ok) {
-          return await res.json();
+          const data = await res.json();
+          // Ensure we have the latest version
+          const latestVersion = data['dist-tags']?.latest || Object.keys(data.versions || {}).pop();
+          const versionData = data.versions?.[latestVersion] || {};
+
+          return {
+            name: data.name,
+            version: latestVersion,
+            description: versionData.description || data.description || 'No description available',
+            license: versionData.license || data.license || 'Not specified',
+            author: versionData.author || data.author || { name: 'Unknown', email: '' },
+            maintainers: data.maintainers || [],
+            readme: versionData.readme || data.readme || 'No README available',
+            repository: versionData.repository || data.repository,
+            homepage: versionData.homepage || data.homepage
+          };
         }
 
         // If we're rate limited, wait before retrying
         if (res.status === 429 && i < retries) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
           continue;
         }
 
@@ -69,7 +95,7 @@ function getFallbackPackages(): PackageDetails[] {
         email: 'opensource@fb.com'
       },
       maintainers: [{ name: 'React Team', email: 'react-core@fb.com' }],
-      readme: '# React\n\nA JavaScript library for building user interfaces.',
+      readme: '# React\n\nA JavaScript library for building user interfaces.\n\n## Features\n\n- **Declarative**: React makes it painless to create interactive UIs.\n- **Component-Based**: Build encapsulated components that manage their own state.\n- **Learn Once, Write Anywhere**: We don\'t make assumptions about your technology stack.',
       repository: { url: 'https://github.com/facebook/react' },
       homepage: 'https://reactjs.org'
     },
@@ -83,9 +109,37 @@ function getFallbackPackages(): PackageDetails[] {
         email: 'typescript@microsoft.com'
       },
       maintainers: [{ name: 'TypeScript Team', email: 'typescript@microsoft.com' }],
-      readme: '# TypeScript\n\nTypeScript is a language for application scale JavaScript development.',
+      readme: '# TypeScript\n\nTypeScript is a language for application scale JavaScript development.\n\n## Features\n\n- **Static Type-Checking**: TypeScript adds static typing to JavaScript.\n- **ECMAScript Features**: TypeScript supports new ECMAScript standards.\n- **Rich IDE Support**: TypeScript provides code completion, refactoring, and navigation.',
       repository: { url: 'https://github.com/microsoft/TypeScript' },
       homepage: 'https://www.typescriptlang.org/'
+    },
+    {
+      name: 'vite',
+      description: 'Next generation frontend tooling',
+      version: '4.3.9',
+      license: 'MIT',
+      author: {
+        name: 'Evan You',
+        email: ''
+      },
+      maintainers: [{ name: 'Vite Team', email: '' }],
+      readme: '# Vite\n\nNext Generation Frontend Tooling.\n\n## Features\n\n- **Instant Server Start**: Lightning fast cold server start.\n- **Lightning Fast HMR**: Hot Module Replacement that stays fast.\n- **Optimized Build**: Pre-configured Rollup build with multi-page and library mode support.',
+      repository: { url: 'https://github.com/vitejs/vite' },
+      homepage: 'https://vitejs.dev/'
+    },
+    {
+      name: 'bootstrap',
+      description: 'The most popular front-end framework for developing responsive, mobile first projects on the web.',
+      version: '5.3.0',
+      license: 'MIT',
+      author: {
+        name: 'The Bootstrap Authors',
+        email: ''
+      },
+      maintainers: [{ name: 'Bootstrap Team', email: '' }],
+      readme: '# Bootstrap\n\nThe most popular HTML, CSS, and JS library in the world.\n\n## Features\n\n- **Responsive Grid System**: Mobile-first flexbox grid.\n- **Extensive Components**: Dozens of reusable components.\n- **Powerful JavaScript Plugins**: Bring Bootstrap components to life.',
+      repository: { url: 'https://github.com/twbs/bootstrap' },
+      homepage: 'https://getbootstrap.com/'
     }
   ];
 }
