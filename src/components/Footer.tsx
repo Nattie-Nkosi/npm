@@ -68,7 +68,7 @@ export default function Footer() {
           href={link.path}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-gray-500 hover:text-blue-600 transition-colors"
+          className="text-zinc-600 hover:text-zinc-900 transition-colors text-sm font-medium"
         >
           {link.label}
         </a>
@@ -78,7 +78,7 @@ export default function Footer() {
       <Link
         key={index}
         to={link.path}
-        className="text-gray-500 hover:text-blue-600 transition-colors"
+        className="text-zinc-600 hover:text-zinc-900 transition-colors text-sm font-medium"
       >
         {link.label}
       </Link>
@@ -86,26 +86,28 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-white border-t">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-zinc-50 border-t border-zinc-200">
+      <div className="container mx-auto px-4 lg:px-6 py-12">
         {/* Top section with links */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand section */}
           <div className="space-y-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <FiPackage className="h-6 w-6 text-blue-600" />
-              <span className="text-xl font-bold">NPM Registry</span>
+            <Link to="/" className="flex items-center space-x-2 group">
+              <div className="p-2 bg-zinc-900 rounded-lg group-hover:bg-zinc-800 transition-all duration-200">
+                <FiPackage className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-zinc-900">NPM Registry</span>
             </Link>
-            <p className="text-gray-600 text-sm">
+            <p className="text-zinc-600 text-sm leading-relaxed">
               Search and explore NPM packages with this registry application.
               Find the perfect dependencies for your next JavaScript project.
             </p>
-            <div className="flex space-x-4 pt-2">
+            <div className="flex space-x-3 pt-2">
               <a
                 href="https://github.com/Nattie-Nkosi/npm"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-gray-900"
+                className="p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all duration-200"
                 aria-label="GitHub"
               >
                 <FiGithub className="h-5 w-5" />
@@ -114,7 +116,7 @@ export default function Footer() {
                 href="https://x.com/NattieNkosi"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-blue-400"
+                className="p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all duration-200"
                 aria-label="Twitter"
               >
                 <FiTwitter className="h-5 w-5" />
@@ -123,7 +125,7 @@ export default function Footer() {
                 href="https://www.linkedin.com/in/nkosinathi-nkosi/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-blue-700"
+                className="p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all duration-200"
                 aria-label="LinkedIn"
               >
                 <FiLinkedin className="h-5 w-5" />
@@ -134,8 +136,8 @@ export default function Footer() {
           {/* Navigation sections */}
           {footerSections.map((section, idx) => (
             <div key={idx} className="space-y-4">
-              <h3 className="font-semibold text-gray-900">{section.title}</h3>
-              <ul className="space-y-2">
+              <h3 className="font-bold text-zinc-900 text-lg">{section.title}</h3>
+              <ul className="space-y-2.5">
                 {section.links.map((link, linkIdx) => (
                   <li key={linkIdx}>{renderLink(link, linkIdx)}</li>
                 ))}

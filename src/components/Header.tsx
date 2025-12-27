@@ -31,32 +31,34 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
-      <div className="container mx-auto px-4">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-zinc-200/50 shadow-sm">
+      <div className="container mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link
               to="/"
-              className="flex items-center space-x-2 text-lg font-bold"
+              className="flex items-center space-x-2 text-lg font-bold group"
               aria-label="NPM Registry Home"
             >
-              <FiPackage className="h-6 w-6 text-blue-600" />
-              <span className="hidden sm:inline-block text-black">
+              <div className="p-2 bg-zinc-900 rounded-lg group-hover:bg-zinc-800 transition-all duration-200">
+                <FiPackage className="h-5 w-5 text-white" />
+              </div>
+              <span className="hidden sm:inline-block text-zinc-900">
                 NPM Registry
               </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:ml-8 md:flex md:space-x-4">
+            <nav className="hidden md:ml-8 md:flex md:space-x-2">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   to={item.path}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                     isActive(item.path)
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                      ? "bg-zinc-900 text-white shadow-md"
+                      : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
                   }`}
                 >
                   {item.label}
@@ -66,7 +68,7 @@ export default function Header() {
           </div>
 
           {/* Search and Actions */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <div className="hidden sm:block w-64 lg:w-96">
               <SearchInput />
             </div>
@@ -76,7 +78,7 @@ export default function Header() {
               href="https://github.com/Nattie-Nkosi/npm"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all duration-200"
               aria-label="GitHub Repository"
             >
               <FiGithub className="h-5 w-5" />
@@ -85,7 +87,7 @@ export default function Header() {
             {/* Favorites - could link to a favorites page */}
             <Link
               to="/search?term=react"
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all duration-200"
               aria-label="Favorite Packages"
             >
               <FiHeart className="h-5 w-5" />
@@ -94,7 +96,7 @@ export default function Header() {
             {/* Mobile menu button */}
             <button
               type="button"
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="md:hidden p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all duration-200"
               onClick={toggleMenu}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-menu"
@@ -112,7 +114,7 @@ export default function Header() {
         {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden" id="mobile-menu">
-            <div className="py-3 px-2 space-y-1 border-t">
+            <div className="py-3 px-2 space-y-1 border-t border-zinc-200/50">
               {/* Mobile Search */}
               <div className="p-2">
                 <SearchInput />
@@ -123,10 +125,10 @@ export default function Header() {
                 <Link
                   key={item.label}
                   to={item.path}
-                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  className={`block px-4 py-2.5 rounded-lg text-base font-medium transition-all duration-200 ${
                     isActive(item.path)
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                      ? "bg-zinc-900 text-white"
+                      : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -137,14 +139,14 @@ export default function Header() {
               {/* Additional items for mobile */}
               <Link
                 to="/search?term=typescript"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                className="block px-4 py-2.5 rounded-lg text-base font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-all duration-200"
                 onClick={() => setIsMenuOpen(false)}
               >
                 TypeScript
               </Link>
               <Link
                 to="/search?term=react"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                className="block px-4 py-2.5 rounded-lg text-base font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-all duration-200"
                 onClick={() => setIsMenuOpen(false)}
               >
                 React

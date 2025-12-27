@@ -16,14 +16,14 @@ export default function SearchInput() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="relative">
-        <div className="absolute inset-y-0 flex items-center pl-3 pointer-events-none">
-          <VscSearch className="h-5 w-5 text-gray-400" />
+      <div className="relative group">
+        <div className="absolute inset-y-0 flex items-center pl-4 pointer-events-none">
+          <VscSearch className="h-5 w-5 text-zinc-400 group-focus-within:text-zinc-700 transition-colors" />
         </div>
         <input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          className="pl-10 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          className="pl-11 pr-4 py-2.5 w-full bg-zinc-50 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-900 focus:bg-white transition-all duration-200 placeholder:text-zinc-400"
           placeholder="Search packages..."
           aria-label="Search packages"
         />

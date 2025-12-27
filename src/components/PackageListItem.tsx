@@ -40,45 +40,45 @@ export default function PackageListItem({ pack }: PackageListItemProps) {
   const safePackageName = encodeURIComponent(pack.name);
 
   return (
-    <div className="border p-4 rounded-lg flex justify-between items-center hover:shadow-md transition-shadow">
-      <div className="flex flex-col gap-2 flex-grow">
-        <div className="flex items-center">
-          <div className="mr-3 text-blue-600">
-            <FiPackage size={20} />
+    <div className="group border border-zinc-200 p-6 rounded-2xl flex justify-between items-center hover:shadow-xl hover:border-zinc-300 transition-all duration-300 bg-white hover:-translate-y-0.5">
+      <div className="flex flex-col gap-3 flex-grow">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-zinc-100 rounded-xl group-hover:bg-zinc-200 transition-all">
+            <FiPackage size={24} className="text-zinc-700" />
           </div>
           <Link
             to={`/packages/${safePackageName}`}
-            className="text-xl font-bold text-blue-600 hover:underline"
+            className="text-xl font-bold text-zinc-900 hover:text-zinc-600 transition-all"
           >
             {pack.name}
           </Link>
           {pack.version && (
-            <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded-full">
+            <span className="text-xs bg-zinc-100 text-zinc-700 px-3 py-1.5 rounded-full font-medium border border-zinc-200">
               v{pack.version}
             </span>
           )}
         </div>
 
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-zinc-600 leading-relaxed">
           {pack.description || "No description available"}
         </p>
 
-        <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-          <div className="flex items-center">
-            <FiDownload className="mr-1" />
+        <div className="flex items-center gap-5 text-xs font-medium text-zinc-600">
+          <div className="flex items-center gap-1.5">
+            <FiDownload size={16} />
             <span>{formatNumber(downloads)}</span>
           </div>
-          <div className="flex items-center">
-            <FiStar className="mr-1" />
+          <div className="flex items-center gap-1.5">
+            <FiStar size={16} />
             <span>{formatNumber(stars)}</span>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1 mt-2">
+        <div className="flex flex-wrap gap-2 mt-1">
           {keywords.map((keyword) => (
             <button
               key={keyword}
-              className="border py-0.5 px-1 text-xs bg-gray-100 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer"
+              className="px-3 py-1.5 text-xs bg-zinc-50 border border-zinc-200 rounded-lg hover:bg-zinc-100 hover:border-zinc-300 hover:text-zinc-900 transition-all cursor-pointer font-medium"
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/search?term=${encodeURIComponent(keyword)}`);
@@ -89,19 +89,19 @@ export default function PackageListItem({ pack }: PackageListItemProps) {
             </button>
           ))}
           {hasMoreKeywords && (
-            <div className="border py-0.5 px-1 text-xs bg-gray-100 rounded">
+            <div className="px-3 py-1.5 text-xs bg-zinc-50 border border-zinc-200 rounded-lg font-medium">
               +{keywordCount - 5} more
             </div>
           )}
         </div>
       </div>
 
-      <div className="ml-4 flex">
+      <div className="ml-6 flex">
         <Link
           to={`/packages/${safePackageName}`}
-          className="py-2 px-4 rounded bg-black text-white hover:bg-blue-700 transition-colors"
+          className="py-3 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 transition-all duration-200 font-semibold shadow-lg whitespace-nowrap"
         >
-          View
+          View Details
         </Link>
       </div>
     </div>
