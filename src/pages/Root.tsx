@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import RouteChangeHandler from "../components/RouteChangeHandler";
 import Footer from "../components/Footer";
-import { useLoading } from "../context/LoadingContext";
+import ScrollToTopButton from "../components/ScrollToTop";
 
 // Progress bar component for navigation
 const ProgressBar = ({ isNavigating }: { isNavigating: boolean }) => {
@@ -60,8 +60,8 @@ const ProgressBar = ({ isNavigating }: { isNavigating: boolean }) => {
   );
 };
 
-// Simple scroll to top component
-const ScrollToTop = () => {
+// Simple scroll to top on route change
+const ScrollToTopOnNav = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -74,29 +74,11 @@ const ScrollToTop = () => {
 export default function Root() {
   const navigation = useNavigation();
   const isNavigating = navigation.state === "loading";
-  const { setIsLoading } = useLoading();
-
-  // Reset loading state when component mounts or unmounts
-  useEffect(() => {
-    setIsLoading(false);
-
-    // Handle beforeunload to show loading when navigating away
-    const handleBeforeUnload = () => {
-      setIsLoading(true);
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      setIsLoading(false);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [setIsLoading]);
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Always ensure we scroll to top on navigation */}
-      <ScrollToTop />
+      <ScrollToTopOnNav />
 
       {/* Only display the progress bar, not an additional loading indicator */}
       <ProgressBar isNavigating={isNavigating} />
@@ -114,6 +96,9 @@ export default function Root() {
 
       {/* Footer - at bottom */}
       <Footer />
+
+      {/* Scroll to top button */}
+      <ScrollToTopButton />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiDownload, FiStar, FiPackage } from "react-icons/fi";
 import type { PackageSummary } from "../api/types/packageSummary";
 
@@ -7,6 +7,8 @@ interface PackageListItemProps {
 }
 
 export default function PackageListItem({ pack }: PackageListItemProps) {
+  const navigate = useNavigate();
+
   // Generate deterministic stats for consistent display
   const getPackageScore = (name: string, max: number) => {
     let hash = 0;
@@ -74,18 +76,17 @@ export default function PackageListItem({ pack }: PackageListItemProps) {
 
         <div className="flex flex-wrap gap-1 mt-2">
           {keywords.map((keyword) => (
-            <div
+            <button
               key={keyword}
-              className="border py-0.5 px-1 text-xs bg-gray-100 rounded hover:bg-gray-200 transition-colors cursor-pointer"
+              className="border py-0.5 px-1 text-xs bg-gray-100 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer"
               onClick={(e) => {
-                e.preventDefault();
-                window.location.href = `/search?term=${encodeURIComponent(
-                  keyword
-                )}`;
+                e.stopPropagation();
+                navigate(`/search?term=${encodeURIComponent(keyword)}`);
               }}
+              aria-label={`Search for ${keyword}`}
             >
               {keyword}
-            </div>
+            </button>
           ))}
           {hasMoreKeywords && (
             <div className="border py-0.5 px-1 text-xs bg-gray-100 rounded">

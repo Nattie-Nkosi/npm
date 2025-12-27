@@ -12,14 +12,12 @@ export default function ErrorPage() {
 
   // Extract error details safely
   let errorMessage = "An unknown error occurred";
-  let errorStatus = "";
   let isNotFound = false;
   let isNetworkError = false;
   let isRateLimited = false;
 
   if (isRouteErrorResponse(error)) {
     errorMessage = error.statusText || error.data?.message || errorMessage;
-    errorStatus = String(error.status || "");
 
     // Check for specific error types
     isNotFound = error.status === 404;
@@ -44,7 +42,6 @@ export default function ErrorPage() {
     if (anyError.statusText) errorMessage = anyError.statusText;
     if (anyError.message) errorMessage = anyError.message;
     if (anyError.status) {
-      errorStatus = String(anyError.status);
       isNotFound = anyError.status === 404;
       isRateLimited = anyError.status === 429;
     }

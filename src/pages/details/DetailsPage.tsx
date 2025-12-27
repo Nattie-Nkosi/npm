@@ -1,8 +1,6 @@
 import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import { DetailsLoaderResult } from "./detailsLoader";
-import { Loader } from "../../components/Loader";
-import { useLoading } from "../../context/LoadingContext";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ReadmeRenderer from "../../components/ReadmeRenderer";
 import PageTitle from "../../components/PageTitle";
 import {
@@ -26,7 +24,6 @@ import {
 
 export default function DetailsPage() {
   const loaderData = useLoaderData() as DetailsLoaderResult;
-  const { isLoading, setIsLoading } = useLoading();
   const { name } = useParams();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
@@ -61,13 +58,6 @@ export default function DetailsPage() {
       }
     : null;
 
-  useEffect(() => {
-    setIsLoading(false);
-    return () => {
-      setIsLoading(false);
-    };
-  }, [setIsLoading]);
-
   const handleCopyToClipboard = () => {
     if (!details) return;
 
@@ -90,15 +80,6 @@ export default function DetailsPage() {
   const toggleReadme = () => {
     setReadmeExpanded(!readmeExpanded);
   };
-
-  // Handle loading state
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center my-16">
-        <Loader size="medium" />
-      </div>
-    );
-  }
 
   // Handle error state
   if (error || !details) {
@@ -162,19 +143,27 @@ export default function DetailsPage() {
             </div>
           </div>
           <div className="flex gap-3 flex-wrap">
-            <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
+            <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm" title="Note: Estimated metrics">
               <FiDownload className="mr-1 text-blue-600" />
-              <span>{formatNumber(mockStats?.downloads || 0)} downloads</span>
+              <span>{formatNumber(mockStats?.downloads || 0)}+ est. downloads</span>
             </div>
-            <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
+            <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm" title="Note: Estimated metrics">
               <FiStar className="mr-1 text-yellow-500" />
-              <span>{formatNumber(mockStats?.stars || 0)} stars</span>
+              <span>{formatNumber(mockStats?.stars || 0)}+ est. stars</span>
             </div>
-            <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
+            <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm" title="Note: Estimated date">
               <FiClock className="mr-1 text-green-600" />
-              <span>Updated {mockStats?.lastUpdated}</span>
+              <span>Est. updated {mockStats?.lastUpdated}</span>
             </div>
           </div>
+        </div>
+
+        {/* Info banner about estimated stats */}
+        <div className="mt-4 bg-blue-50 border-l-4 border-blue-400 p-3 text-sm text-blue-800">
+          <p className="flex items-center gap-2">
+            <FiAlertCircle size={16} />
+            <span>Stats shown are estimated values for demonstration purposes. Visit NPM for accurate data.</span>
+          </p>
         </div>
 
         {/* Installation Command */}

@@ -29,18 +29,13 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({
   initialLoading = false,
 }) => {
   const [isLoading, setIsLoadingState] = useState(initialLoading);
-  const [showOverlay, setShowOverlay] = useState(false);
   const [longLoading, setLongLoading] = useState(false);
   const loadingCountRef = useRef(0);
-  const overlayTimeoutRef = useRef<number | null>(null);
   const longLoadingTimeoutRef = useRef<number | null>(null);
 
   // Clean up all timeouts on unmount
   useEffect(() => {
     return () => {
-      if (overlayTimeoutRef.current) {
-        clearTimeout(overlayTimeoutRef.current);
-      }
       if (longLoadingTimeoutRef.current) {
         clearTimeout(longLoadingTimeoutRef.current);
       }
@@ -50,45 +45,26 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({
   // Handle loading state changes with proper cleanup
   useEffect(() => {
     if (isLoading && loadingCountRef.current > 0) {
-      // Clear any existing timeouts
-      if (overlayTimeoutRef.current) {
-        clearTimeout(overlayTimeoutRef.current);
-        overlayTimeoutRef.current = null;
-      }
+      // Clear any existing timeout
       if (longLoadingTimeoutRef.current) {
         clearTimeout(longLoadingTimeoutRef.current);
         longLoadingTimeoutRef.current = null;
       }
 
-      // Show overlay after 400ms to prevent flashing
-      overlayTimeoutRef.current = window.setTimeout(() => {
-        setShowOverlay(true);
-        overlayTimeoutRef.current = null;
-
-        // Show refresh option after 10 seconds
-        longLoadingTimeoutRef.current = window.setTimeout(() => {
-          setLongLoading(true);
-          longLoadingTimeoutRef.current = null;
-        }, 10000);
-      }, 400);
+      // Show notification after 10 seconds of loading
+      longLoadingTimeoutRef.current = window.setTimeout(() => {
+        setLongLoading(true);
+        longLoadingTimeoutRef.current = null;
+      }, 10000);
     } else {
-      // Clear timeouts when loading stops
-      if (overlayTimeoutRef.current) {
-        clearTimeout(overlayTimeoutRef.current);
-        overlayTimeoutRef.current = null;
-      }
+      // Clear timeout when loading stops
       if (longLoadingTimeoutRef.current) {
         clearTimeout(longLoadingTimeoutRef.current);
         longLoadingTimeoutRef.current = null;
       }
 
-      // Hide overlay with a slight delay for smooth transition
-      const hideTimer = setTimeout(() => {
-        setShowOverlay(false);
-        setLongLoading(false);
-      }, 100);
-
-      return () => clearTimeout(hideTimer);
+      // Hide notification
+      setLongLoading(false);
     }
   }, [isLoading]);
 
@@ -129,29 +105,25 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({
       }}
     >
       {children}
-      {/* Loading overlay */}
-      {showOverlay && isLoading && loadingCountRef.current > 0 && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-200">
-          <div className="bg-white p-6 rounded-lg shadow-xl">
-            <Loader size="large" />
-            <p className="text-center mt-4">
-              {longLoading ? "Still loading..." : "Loading..."}
-            </p>
-
-            {/* Show refresh button for long loading times */}
-            {longLoading && (
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-500 mb-2">
+      {/* Loading indicator - Only show for very long operations (10+ seconds) */}
+      {longLoading && isLoading && loadingCountRef.current > 0 && (
+        <div className="fixed top-20 right-4 z-50 transition-all duration-300">
+          <div className="bg-white border-2 border-blue-500 p-4 rounded-lg shadow-xl max-w-sm">
+            <div className="flex items-center gap-3">
+              <Loader size="medium" />
+              <div>
+                <p className="font-medium text-gray-800">Still loading...</p>
+                <p className="text-sm text-gray-500 mt-1">
                   This is taking longer than expected.
                 </p>
-                <button
-                  onClick={handleRefresh}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors flex items-center mx-auto"
-                >
-                  <FiRefreshCw className="mr-2" /> Refresh Page
-                </button>
               </div>
-            )}
+            </div>
+            <button
+              onClick={handleRefresh}
+              className="mt-3 w-full px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors flex items-center justify-center"
+            >
+              <FiRefreshCw className="mr-2" /> Refresh Page
+            </button>
           </div>
         </div>
       )}

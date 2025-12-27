@@ -1,15 +1,26 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { FiPackage, FiMenu, FiX, FiHeart, FiGithub } from "react-icons/fi";
 import SearchInput from "./Searchinput";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  // Check if a nav item is active
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname + location.search === path || location.search === path.split("?")[1];
+  };
 
   // Main navigation items
   const navItems = [
@@ -42,7 +53,11 @@ export default function Header() {
                 <Link
                   key={item.label}
                   to={item.path}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-blue-600 transition-colors"
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive(item.path)
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                  }`}
                 >
                   {item.label}
                 </Link>
@@ -108,7 +123,11 @@ export default function Header() {
                 <Link
                   key={item.label}
                   to={item.path}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    isActive(item.path)
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                  }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}

@@ -1,14 +1,13 @@
 import {
   useLoaderData,
   useSearchParams,
-  useNavigate,
   Link,
 } from "react-router-dom";
 import PackageListItem from "../../components/PackageListItem";
 import { SearchLoaderResult } from "./searchLoader";
 import { Loader } from "../../components/Loader";
-import { useLoading } from "../../context/LoadingContext";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useDebounce } from "use-debounce";
 import PageTitle from "../../components/PageTitle";
 import {
   FiSearch,
@@ -29,24 +28,15 @@ export default function SearchPage() {
   const data = useLoaderData() as SearchLoaderResult;
   const [searchParams, setSearchParams] = useSearchParams();
   const term = searchParams.get("term") || "";
-  const { setIsLoading } = useLoading();
-  const navigate = useNavigate();
 
   // UI state
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [filterQuery, setFilterQuery] = useState("");
+  const [debouncedFilterQuery] = useDebounce(filterQuery, 300);
   const [searchInput, setSearchInput] = useState(term);
   const [isSearching, setIsSearching] = useState(false);
-
-  // Reset loading state when component mounts or unmounts
-  useEffect(() => {
-    setIsLoading(false);
-    return () => {
-      setIsLoading(false);
-    };
-  }, [setIsLoading]);
 
   // Use useMemo to optimize filtering and sorting operations for better performance
   const processedResults = useMemo(() => {
@@ -56,9 +46,9 @@ export default function SearchPage() {
       [...data.searchResults]
         // Filter by local filter query if present
         .filter((item) => {
-          if (!filterQuery) return true;
+          if (!debouncedFilterQuery) return true;
 
-          const query = filterQuery.toLowerCase();
+          const query = debouncedFilterQuery.toLowerCase();
 
           // Check if matches name
           if (item.name.toLowerCase().includes(query)) return true;
@@ -127,7 +117,7 @@ export default function SearchPage() {
           }
         })
     );
-  }, [data?.searchResults, filterQuery, sortBy, sortDirection]);
+  }, [data?.searchResults, debouncedFilterQuery, sortBy, sortDirection]);
 
   // Handle new search submission
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -385,7 +375,7 @@ export default function SearchPage() {
         <p className="text-sm text-gray-500">
           Showing {processedResults.length}{" "}
           {processedResults.length === 1 ? "package" : "packages"}
-          {filterQuery && ` filtered by "${filterQuery}"`}
+          {debouncedFilterQuery && ` filtered by "${debouncedFilterQuery}"`}
         </p>
 
         <button
@@ -449,11 +439,11 @@ export default function SearchPage() {
       )}
 
       {/* No filtered results */}
-      {processedResults.length === 0 && filterQuery && (
+      {processedResults.length === 0 && debouncedFilterQuery && (
         <div className="bg-gray-50 rounded-lg p-8 text-center my-8">
           <FiFilter size={32} className="mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-medium">
-            No matches for "{filterQuery}"
+            No matches for "{debouncedFilterQuery}"
           </h3>
           <p className="text-gray-600 mt-2">
             Try adjusting your filter criteria

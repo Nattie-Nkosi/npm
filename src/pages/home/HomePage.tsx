@@ -1,8 +1,6 @@
 import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import { HomeLoaderResult } from "./homeLoader";
-import { useLoading } from "../../context/LoadingContext";
-import { useEffect, useState } from "react";
-import { Loader } from "../../components/Loader";
+import { useState } from "react";
 import PageTitle from "../../components/PageTitle";
 import {
   FiSearch,
@@ -112,15 +110,8 @@ const PackageCard = ({ pack }: { pack: Package }) => {
 
 export default function HomePage() {
   const data = useLoaderData() as HomeLoaderResult;
-  const { setIsLoading } = useLoading();
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const [isLoading, setIsLocalLoading] = useState(false);
-
-  useEffect(() => {
-    // Ensure loading state is cleared
-    setIsLoading(false);
-  }, [setIsLoading]);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -131,17 +122,8 @@ export default function HomePage() {
 
   // Retry loading if featured packages failed to load
   const handleRetry = () => {
-    setIsLocalLoading(true);
     window.location.reload();
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center my-16">
-        <Loader size="medium" />
-      </div>
-    );
-  }
 
   // Show error state if there was an error
   if (data?.error) {
